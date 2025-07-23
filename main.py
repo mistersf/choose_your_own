@@ -21,6 +21,16 @@ contents = [[Materials.NONE for _ in range(BOARD_WIDTH)] for _ in range(BOARD_HE
 buffer = [[Materials.NONE for _ in range(BOARD_WIDTH)] for _ in range(BOARD_HEIGHT)]
 
 
+def initialize_board():
+    """Initialize the board with some default materials."""
+    for y in range(BOARD_HEIGHT):
+        for x in range(BOARD_WIDTH):
+            if y < BOARD_HEIGHT // 2:
+                contents[y][x] = Materials.STONE
+            else:
+                contents[y][x] = Materials.NONE
+
+
 def draw_board(screen):
     """Draw the board to the screen."""
     pxarray = pygame.PixelArray(screen)
@@ -36,6 +46,8 @@ if __name__ == "__main__":
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pygame.time.Clock()
     running = True
+
+    initialize_board()
 
     while running:
         for event in pygame.event.get():

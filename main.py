@@ -21,6 +21,7 @@ SCREEN_HEIGHT = BOARD_HEIGHT * CELL_SIZE
 contents = [[Materials.NONE for _ in range(BOARD_WIDTH)] for _ in range(BOARD_HEIGHT)]
 
 active_material = Materials.SAND
+brush_radius = 1
 
 
 def get_content(x: int, y: int) -> Materials:
@@ -155,8 +156,12 @@ if __name__ == "__main__":
                     mouse_x, mouse_y = pygame.mouse.get_pos()
                     col = mouse_x // CELL_SIZE
                     row = mouse_y // CELL_SIZE
-                    if 0 <= col < BOARD_WIDTH and 0 <= row < BOARD_HEIGHT:
-                        contents[row][col] = active_material
+                    for dx in range(brush_radius * 2 + 1):
+                        cell_x = col - brush_radius + dx
+                        for dy in range(brush_radius * 2 + 1):
+                            cell_y = row - brush_radius + dy
+                            if 0 <= cell_x < BOARD_WIDTH and 0 <= cell_y < BOARD_HEIGHT:
+                                contents[cell_y][cell_x] = active_material
 
         tick()
 

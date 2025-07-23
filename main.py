@@ -1,6 +1,6 @@
 import pygame
 from material import Material
-from materials import Materials
+from materials import Materials, get_material
 
 # Constants
 # The dimensions of the board in cells
@@ -8,7 +8,8 @@ BOARD_WIDTH = 128
 BOARD_HEIGHT = 128
 
 # The size of each cell in pixels
-CELL_SIZE = 8
+# UNIMPLEMENTED, set to 1 for now
+CELL_SIZE = 1
 
 # The dimensions of the screen in pixels
 SCREEN_WIDTH = BOARD_WIDTH * CELL_SIZE
@@ -18,6 +19,15 @@ SCREEN_HEIGHT = BOARD_HEIGHT * CELL_SIZE
 contents = [[Materials.NONE for _ in range(BOARD_WIDTH)] for _ in range(BOARD_HEIGHT)]
 # The buffer for the next frame
 buffer = [[Materials.NONE for _ in range(BOARD_WIDTH)] for _ in range(BOARD_HEIGHT)]
+
+
+def draw_board(screen):
+    """Draw the board to the screen."""
+    pxarray = pygame.PixelArray(screen)
+    for y in range(BOARD_HEIGHT):
+        for x in range(BOARD_WIDTH):
+            material = get_material(contents[y][x])
+            pxarray[x, y] = material.color
 
 
 if __name__ == "__main__":
@@ -32,7 +42,7 @@ if __name__ == "__main__":
             if event.type == pygame.QUIT:
                 running = False
 
-        screen.fill((0, 0, 0))
+        draw_board(screen)
 
         pygame.display.flip()
 

@@ -209,6 +209,8 @@ def place_material_at_cell(x: int, y: int, material: Materials = None):
         n_x = x - brush_radius + dx
         for dy in range(brush_radius * 2 + 1):
             n_y = y - brush_radius + dy
+            if (dx - brush_radius) ** 2 + (dy - brush_radius) ** 2 > brush_radius**2:
+                continue
             if 0 <= n_x < BOARD_WIDTH and 0 <= n_y < BOARD_HEIGHT:
                 contents[n_y][n_x] = material
 

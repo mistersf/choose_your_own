@@ -1,29 +1,31 @@
 import random
 import pygame
-from material import DIAGONAL_DRIFT, SIDEWAYS_DRIFT, Material
+from material import DIAGONAL_DRIFT, SIDEWAYS_DRIFT
 from materials import Materials, get_material
 
 # Constants
 # The dimensions of the board in cells
-BOARD_WIDTH = 128
-BOARD_HEIGHT = 128
+BOARD_WIDTH: int = 128
+BOARD_HEIGHT: int = 128
 
 # The size of each cell in pixels
-CELL_SIZE = 4
+CELL_SIZE: int = 4
 
 # The dimensions of the screen in pixels
-SCREEN_WIDTH = BOARD_WIDTH * CELL_SIZE
-SCREEN_HEIGHT = BOARD_HEIGHT * CELL_SIZE
+SCREEN_WIDTH: int = BOARD_WIDTH * CELL_SIZE
+SCREEN_HEIGHT: int = BOARD_HEIGHT * CELL_SIZE
 
 # The current state of the board
 # Notably, this is row-major for access, while Pygame uses column-major for PixelArray
 # This means that contents[y][x] corresponds to pxarray[x, y]
-contents = [[Materials.NONE for _ in range(BOARD_WIDTH)] for _ in range(BOARD_HEIGHT)]
+contents: list[list[Materials]] = [
+    [Materials.NONE for _ in range(BOARD_WIDTH)] for _ in range(BOARD_HEIGHT)
+]
 
-active_material = Materials.SAND
-brush_radius = 1
-drawing = False
-erasing = False
+active_material: Materials = Materials.SAND
+brush_radius: int = 1
+drawing: bool = False
+erasing: bool = False
 
 
 def get_content(x: int, y: int) -> Materials:
@@ -33,7 +35,7 @@ def get_content(x: int, y: int) -> Materials:
     return Materials.EDGE  # Return EDGE if out of bounds
 
 
-def initialize_board():
+def initialize_board() -> None:
     """Initialize the board with some default materials. Expects contents to be full of Materials.NONE."""
     for y in range(BOARD_HEIGHT):
         for x in range(BOARD_WIDTH):
@@ -50,20 +52,20 @@ def initialize_board():
                     contents[y][x] = Materials.SAND
 
 
-def draw_board(screen):
+def draw_board(surface: pygame.Surface) -> None:
     """Draw the board to the screen."""
-    pxarray = pygame.PixelArray(screen)
+    pxarray: pygame.PixelArray = pygame.PixelArray(surface)
     for y in range(BOARD_HEIGHT):
         for x in range(BOARD_WIDTH):
             material = get_material(get_content(x, y))
             pxarray[x, y] = material.color
 
 
-def draw_mouse(screen):
+def draw_mouse(screen: pygame.Surface) -> None:
     """Draw the active material at the mouse position."""
     mouse_x, mouse_y = pygame.mouse.get_pos()
-    col = mouse_x // CELL_SIZE
-    row = mouse_y // CELL_SIZE
+    col: int = mouse_x // CELL_SIZE
+    row: int = mouse_y // CELL_SIZE
     # Draw a circle around the cell to indicate the approximate brush radius
     if brush_radius > 0:
         pygame.draw.circle(
@@ -77,7 +79,15 @@ def draw_mouse(screen):
         screen.set_at((col, row), get_material(active_material).color)
 
 
-def buffer_swap(buffer, x1, y1, contents1, x2, y2, contents2):
+def buffer_swap(
+    buffer: list[list[Materials]],
+    x1: int,
+    y1: int,
+    contents1: Materials,
+    x2: int,
+    y2: int,
+    contents2: Materials,
+) -> bool:
     """
     Swap two cells in the buffer ONLY IF CLEAN.
     Returns False if the swap was not possible.
@@ -91,7 +101,7 @@ def buffer_swap(buffer, x1, y1, contents1, x2, y2, contents2):
     return True
 
 
-def tick():
+def tick() -> None:
     """Update the board state for the next frame."""
     global contents
     buffer = [
@@ -228,15 +238,15 @@ def tick():
     contents = buffer
 
 
-def place_material_with_mouse(material: Materials = None):
+def place_material_with_mouse(material: Materials = None) -> None:
     """Draw the active material at the mouse position."""
     mouse_x, mouse_y = pygame.mouse.get_pos()
-    col = mouse_x // CELL_SIZE
-    row = mouse_y // CELL_SIZE
+    col: int = mouse_x // CELL_SIZE
+    row: int = mouse_y // CELL_SIZE
     place_material_at_cell(col, row, material)
 
 
-def place_material_at_cell(x: int, y: int, material: Materials = None):
+def place_material_at_cell(x: int, y: int, material: Materials = None) -> None:
     """
     Draw the given material at the specified cell, using the brush radius.
     Draws the active material if none is specified.
@@ -256,10 +266,10 @@ def place_material_at_cell(x: int, y: int, material: Materials = None):
 if __name__ == "__main__":
     print("Starting main.py")
     pygame.init()
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    board_surface = pygame.Surface((BOARD_WIDTH, BOARD_HEIGHT))
-    clock = pygame.time.Clock()
-    running = True
+    screen: pygame.Surface = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    board_surface: pygame.Surface = pygame.Surface((BOARD_WIDTH, BOARD_HEIGHT))
+    clock: pygame.time.Clock = pygame.time.Clock()
+    running: bool = True
 
     initialize_board()
 

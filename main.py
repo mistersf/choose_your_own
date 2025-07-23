@@ -1,7 +1,14 @@
 import pygame
 
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+# Constants
+
+BOARD_WIDTH = 128
+BOARD_HEIGHT = 128
+
+CELL_SIZE = 8
+
+SCREEN_WIDTH = BOARD_WIDTH * CELL_SIZE
+SCREEN_HEIGHT = BOARD_HEIGHT * CELL_SIZE
 
 
 if __name__ == "__main__":

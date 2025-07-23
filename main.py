@@ -34,15 +34,17 @@ def get_content(x: int, y: int) -> Materials:
 
 
 def initialize_board():
-    """Initialize the board with some default materials."""
+    """Initialize the board with some default materials. Expects contents to be full of Materials.NONE."""
     for y in range(BOARD_HEIGHT):
         for x in range(BOARD_WIDTH):
-            if y < BOARD_HEIGHT // 4:
+            # Fill the bottom with a layer of stone
+            if y > BOARD_HEIGHT // 4 * 3 or 50 < x < 60:
                 contents[y][x] = Materials.STONE
-            elif x > BOARD_WIDTH // 4 and y < BOARD_HEIGHT // 2:
-                contents[y][x] = Materials.SAND
             else:
-                contents[y][x] = Materials.NONE
+                if x < 10:
+                    contents[y][x] = Materials.WATER
+                elif x < 20:
+                    contents[y][x] = Materials.SAND
 
 
 def draw_board(screen):
@@ -60,13 +62,16 @@ def draw_mouse(screen):
     col = mouse_x // CELL_SIZE
     row = mouse_y // CELL_SIZE
     # Draw a circle around the cell to indicate the approximate brush radius
-    pygame.draw.circle(
-        screen,
-        get_material(active_material).color,
-        (col, row),
-        brush_radius,
-        1,
-    )
+    if brush_radius > 0:
+        pygame.draw.circle(
+            screen,
+            get_material(active_material).color,
+            (col, row),
+            brush_radius,
+            1,
+        )
+    else:
+        screen.set_at((col, row), get_material(active_material).color)
 
 
 def buffer_swap(buffer, x1, y1, contents1, x2, y2, contents2):

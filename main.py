@@ -23,6 +23,7 @@ contents = [[Materials.NONE for _ in range(BOARD_WIDTH)] for _ in range(BOARD_HE
 active_material = Materials.SAND
 brush_radius = 1
 drawing = False
+erasing = False
 
 
 def get_content(x: int, y: int) -> Materials:
@@ -51,6 +52,21 @@ def draw_board(screen):
         for x in range(BOARD_WIDTH):
             material = get_material(get_content(x, y))
             pxarray[x, y] = material.color
+
+
+def draw_mouse(screen):
+    """Draw the active material at the mouse position."""
+    mouse_x, mouse_y = pygame.mouse.get_pos()
+    col = mouse_x // CELL_SIZE
+    row = mouse_y // CELL_SIZE
+    # Draw a circle around the cell to indicate the approximate brush radius
+    pygame.draw.circle(
+        screen,
+        get_material(active_material).color,
+        (col, row),
+        brush_radius,
+        1,
+    )
 
 
 def buffer_swap(buffer, x1, y1, contents1, x2, y2, contents2):
@@ -174,22 +190,27 @@ def tick():
     contents = buffer
 
 
-def draw_at_mouse():
+def place_material_with_mouse(material: Materials = None):
     """Draw the active material at the mouse position."""
     mouse_x, mouse_y = pygame.mouse.get_pos()
     col = mouse_x // CELL_SIZE
     row = mouse_y // CELL_SIZE
-    draw_at_cell(col, row)
+    place_material_at_cell(col, row, material)
 
 
-def draw_at_cell(x: int, y: int):
-    """Draw the active material at the specified cell, using the brush radius."""
+def place_material_at_cell(x: int, y: int, material: Materials = None):
+    """
+    Draw the given material at the specified cell, using the brush radius.
+    Draws the active material if none is specified.
+    """
+    if material is None:
+        material = active_material
     for dx in range(brush_radius * 2 + 1):
         n_x = x - brush_radius + dx
         for dy in range(brush_radius * 2 + 1):
             n_y = y - brush_radius + dy
             if 0 <= n_x < BOARD_WIDTH and 0 <= n_y < BOARD_HEIGHT:
-                contents[n_y][n_x] = active_material
+                contents[n_y][n_x] = material
 
 
 if __name__ == "__main__":
@@ -216,16 +237,27 @@ if __name__ == "__main__":
                 elif event.key == pygame.K_4:
                     active_material = Materials.OIL
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:
+                if event.button == pygame.BUTTON_LEFT:
                     drawing = True
+                elif event.button == pygame.BUTTON_RIGHT:
+                    erasing = True
+                elif event.button == pygame.BUTTON_WHEELUP:
+                    brush_radius = min(brush_radius + 1, 10)
+                elif event.button == pygame.BUTTON_WHEELDOWN:
+                    brush_radius = max(brush_radius - 1, 0)
             elif event.type == pygame.MOUSEBUTTONUP:
-                if event.button == 1:
+                if event.button == pygame.BUTTON_LEFT:
                     drawing = False
+                elif event.button == pygame.BUTTON_RIGHT:
+                    erasing = False
         if drawing:
-            draw_at_mouse()
+            place_material_with_mouse()
+        elif erasing:
+            place_material_with_mouse(Materials.NONE)
         tick()
 
         draw_board(board_surface)
+        draw_mouse(board_surface)
 
         screen.blit(
             pygame.transform.scale(board_surface, (SCREEN_WIDTH, SCREEN_HEIGHT)), (0, 0)

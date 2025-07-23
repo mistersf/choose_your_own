@@ -53,6 +53,20 @@ def draw_board(screen):
             pxarray[x, y] = material.color
 
 
+def buffer_swap(buffer, x1, y1, contents1, x2, y2, contents2):
+    """
+    Swap two cells in the buffer ONLY IF CLEAN.
+    Returns False if the swap was not possible.
+    """
+    clean1 = buffer[y1][x1] == Materials.CLEAN or buffer[y1][x1] == Materials.NONE
+    clean2 = buffer[y2][x2] == Materials.CLEAN or buffer[y2][x2] == Materials.NONE
+    if not (clean1 and clean2):
+        return False
+    buffer[y1][x1] = contents2
+    buffer[y2][x2] = contents1
+    return True
+
+
 def tick():
     """Update the board state for the next frame."""
     global contents
@@ -71,61 +85,89 @@ def tick():
             modified = False
             # If the material is denser than the one below, swap them
             if old_material.density > below_material.density:
-                buffer[y + 1][x] = old_contents
-                buffer[y][x] = below_contents
-                modified = True
-            elif old_material.drift >= DIAGONAL_DRIFT:
-                # Drift down diagonally if possible
-                below_left_contents = get_content(x - 1, y + 1)
-                below_right_contents = get_content(x + 1, y + 1)
-                below_left_material = get_material(below_left_contents)
-                below_right_material = get_material(below_right_contents)
-                # Randomly check left or right first
-                if random.randint(0, 1) == 0:
-                    if below_left_material.density < old_material.density:
-                        buffer[y + 1][x - 1] = old_contents
-                        buffer[y][x] = below_left_contents
-                        modified = True
-                    elif below_right_material.density < old_material.density:
-                        buffer[y + 1][x + 1] = old_contents
-                        buffer[y][x] = below_right_contents
-                        modified = True
-                else:
-                    if below_right_material.density < old_material.density:
-                        buffer[y + 1][x + 1] = old_contents
-                        buffer[y][x] = below_right_contents
-                        modified = True
-                    elif below_left_material.density < old_material.density:
-                        buffer[y + 1][x - 1] = old_contents
-                        buffer[y][x] = below_left_contents
-                        modified = True
-            elif old_material.drift >= SIDEWAYS_DRIFT:
-                # Drift sideways if possible
-                left_contents = get_content(x - 1, y)
-                right_contents = get_content(x + 1, y)
-                left_material = get_material(left_contents)
-                right_material = get_material(right_contents)
-                if random.randint(0, 1) == 0:
-                    if left_material.density < old_material.density:
-                        buffer[y][x - 1] = old_contents
-                        buffer[y][x] = left_contents
-                        modified = True
-                    elif right_material.density < old_material.density:
-                        buffer[y][x + 1] = old_contents
-                        buffer[y][x] = right_contents
-                        modified = True
-                else:
-                    if right_material.density < old_material.density:
-                        buffer[y][x + 1] = old_contents
-                        buffer[y][x] = right_contents
-                        modified = True
-                    elif left_material.density < old_material.density:
-                        buffer[y][x - 1] = old_contents
-                        buffer[y][x] = left_contents
-                        modified = True
-            # If nothing was modified, keep the old contents
+                modified = buffer_swap(
+                    buffer, x, y, old_contents, x, y + 1, below_contents
+                )
+            else:
+                if not modified and old_material.drift >= DIAGONAL_DRIFT:
+                    # Drift down diagonally if possible
+                    below_left_contents = get_content(x - 1, y + 1)
+                    below_right_contents = get_content(x + 1, y + 1)
+                    below_left_material = get_material(below_left_contents)
+                    below_right_material = get_material(below_right_contents)
+                    # Randomly check left or right first
+                    if random.randint(0, 1) == 0:
+                        if below_left_material.density < old_material.density:
+                            modified = buffer_swap(
+                                buffer,
+                                x,
+                                y,
+                                old_contents,
+                                x - 1,
+                                y + 1,
+                                below_left_contents,
+                            )
+                        elif below_right_material.density < old_material.density:
+                            modified = buffer_swap(
+                                buffer,
+                                x,
+                                y,
+                                old_contents,
+                                x + 1,
+                                y + 1,
+                                below_right_contents,
+                            )
+                    else:
+                        if below_right_material.density < old_material.density:
+                            modified = buffer_swap(
+                                buffer,
+                                x,
+                                y,
+                                old_contents,
+                                x + 1,
+                                y + 1,
+                                below_right_contents,
+                            )
+                        elif below_left_material.density < old_material.density:
+                            modified = buffer_swap(
+                                buffer,
+                                x,
+                                y,
+                                old_contents,
+                                x - 1,
+                                y + 1,
+                                below_left_contents,
+                            )
+                if not modified and old_material.drift >= SIDEWAYS_DRIFT:
+                    # Drift sideways if possible
+                    left_contents = get_content(x - 1, y)
+                    right_contents = get_content(x + 1, y)
+                    left_material = get_material(left_contents)
+                    right_material = get_material(right_contents)
+                    if random.randint(0, 1) == 0:
+                        if left_material.density < old_material.density:
+                            modified = buffer_swap(
+                                buffer, x, y, old_contents, x - 1, y, left_contents
+                            )
+                        elif right_material.density < old_material.density:
+                            modified = buffer_swap(
+                                buffer, x, y, old_contents, x + 1, y, right_contents
+                            )
+                    else:
+                        if right_material.density < old_material.density:
+                            modified = buffer_swap(
+                                buffer, x, y, old_contents, x + 1, y, right_contents
+                            )
+                        elif left_material.density < old_material.density:
+                            modified = buffer_swap(
+                                buffer, x, y, old_contents, x - 1, y, left_contents
+                            )
+            # If nothing was modified, keep the old contents.
+            # Materials.NONE should still be clean to allow for later movements.
             if not modified:
-                buffer[y][x] = old_contents
+                buffer[y][x] = (
+                    old_contents if old_contents != Materials.CLEAN else Materials.CLEAN
+                )
 
     # Swap the buffers
     contents = buffer

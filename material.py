@@ -1,8 +1,7 @@
 from pygame import Color
 
-NO_DRIFT = 0
-DIAGONAL_DRIFT = 1
-SIDEWAYS_DRIFT = 2
+from materials import Materials
+from constants import NO_DRIFT, DIAGONAL_DRIFT, SIDEWAYS_DRIFT
 
 
 class Material:
@@ -38,6 +37,23 @@ class Material:
     """ Is this material affected by gravity?"""
     gravity: bool = True
 
+    """ What temperature does this material melt at? 
+    Requires melt_to to be set to a valid material."""
+    melting_point: float = 0.0
+    """ What material does this material melt into when heated?
+    If None, the material does not melt."""
+    melts_to: Materials = None
+
+    """ What temperature does this material freeze at? 
+    Requires freezes_to to be set to a valid material."""
+    freezing_point: float = 0.0
+    """ What material does this material freeze into when heated?
+    If None, the material does not melt."""
+    freezes_to: Materials = None
+
+    starting_temperature: float = 20.0
+    thermal_conductivity: float = 0.1
+
     def __init__(self, name: str, color: Color):
         self.name = name
         self.color = color
@@ -60,6 +76,28 @@ class Material:
     def with_gravity(self, gravity: bool):
         """Chainable setter for gravity"""
         self.gravity = gravity
+        return self
+
+    def with_melting_point(self, melting_point: float, melts_to: Materials):
+        """Chainable setter for melting point and melts_to"""
+        self.melting_point = melting_point
+        self.melts_to = melts_to
+        return self
+
+    def with_freezing_point(self, freezing_point: float, freezes_to: Materials):
+        """Chainable setter for freezing point and freezes_to"""
+        self.freezing_point = freezing_point
+        self.freezes_to = freezes_to
+        return self
+
+    def with_starting_temperature(self, starting_temperature: float):
+        """Chainable setter for starting temperature"""
+        self.starting_temperature = starting_temperature
+        return self
+
+    def with_thermal_conductivity(self, thermal_conductivity: float):
+        """Chainable setter for thermal conductivity"""
+        self.thermal_conductivity = thermal_conductivity
         return self
 
     def __repr__(self):

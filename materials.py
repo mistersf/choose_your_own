@@ -1,5 +1,4 @@
 from pygame import Color
-from material import Material, NO_DRIFT, DIAGONAL_DRIFT, SIDEWAYS_DRIFT
 from enum import Enum
 
 
@@ -13,42 +12,7 @@ class Materials(Enum):
     OIL = 5
     HELIUM = 6
     WALL = 7
-
-
-# Material flyweights for use in the game
-_materials_data = {
-    Materials.EDGE: Material("Edge", Color(0, 0, 0))
-    .with_density(1000.0)
-    .with_gravity(False),
-    Materials.NONE: Material("None", Color(0, 0, 0))
-    .with_density(0.0)
-    .with_drift(SIDEWAYS_DRIFT)
-    .with_friction(0.5),
-    Materials.STONE: Material("Stone", Color(128, 128, 128)).with_density(10.0),
-    Materials.SAND: Material("Sand", Color(255, 255, 0))
-    .with_density(5.0)
-    .with_drift(DIAGONAL_DRIFT)
-    .with_friction(0.7),
-    Materials.WATER: Material("Water", Color(0, 0, 255))
-    .with_density(1.0)
-    .with_drift(SIDEWAYS_DRIFT)
-    .with_friction(0.5),
-    Materials.OIL: Material("Oil", Color(255, 128, 0))
-    .with_density(0.8)
-    .with_drift(SIDEWAYS_DRIFT)
-    .with_friction(0.0),
-    Materials.HELIUM: Material("Helium", Color(255, 128, 255))
-    .with_density(-1.0)
-    .with_drift(SIDEWAYS_DRIFT)
-    .with_friction(0.0),
-    Materials.WALL: Material("Wall", Color(64, 64, 64))
-    .with_density(1000.0)
-    .with_drift(NO_DRIFT)
-    .with_friction(1.0)
-    .with_gravity(False),
-}
-
-
-def get_material(material_type: Materials) -> Material:
-    """Retrieve the material flyweight for the given material type."""
-    return _materials_data.get(material_type, _materials_data[Materials.NONE])
+    ICE = 8
+    STEAM = 9
+    LIQUID_NITROGEN = 10
+    METAL = 11

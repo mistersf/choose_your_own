@@ -9,8 +9,7 @@ BOARD_WIDTH = 128
 BOARD_HEIGHT = 128
 
 # The size of each cell in pixels
-# UNIMPLEMENTED, set to 1 for now
-CELL_SIZE = 1
+CELL_SIZE = 4
 
 # The dimensions of the screen in pixels
 SCREEN_WIDTH = BOARD_WIDTH * CELL_SIZE
@@ -134,6 +133,7 @@ if __name__ == "__main__":
     print("Starting main.py")
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    board_surface = pygame.Surface((BOARD_WIDTH, BOARD_HEIGHT))
     clock = pygame.time.Clock()
     running = True
 
@@ -160,8 +160,11 @@ if __name__ == "__main__":
 
         tick()
 
-        draw_board(screen)
+        draw_board(board_surface)
 
+        screen.blit(
+            pygame.transform.scale(board_surface, (SCREEN_WIDTH, SCREEN_HEIGHT)), (0, 0)
+        )
         pygame.display.flip()
 
         clock.tick(60)

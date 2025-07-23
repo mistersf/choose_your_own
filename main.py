@@ -173,12 +173,11 @@ if __name__ == "__main__":
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     drawing = True
-                    draw_at_mouse()
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
                     drawing = False
-            elif event.type == pygame.MOUSEMOTION and drawing:
-                draw_at_mouse()
+        if drawing:
+            draw_at_mouse()
         tick()
 
         draw_board(board_surface)

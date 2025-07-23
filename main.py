@@ -22,6 +22,7 @@ contents = [[Materials.NONE for _ in range(BOARD_WIDTH)] for _ in range(BOARD_HE
 
 active_material = Materials.SAND
 brush_radius = 1
+drawing = False
 
 
 def get_content(x: int, y: int) -> Materials:
@@ -130,6 +131,24 @@ def tick():
     contents = buffer
 
 
+def draw_at_mouse():
+    """Draw the active material at the mouse position."""
+    mouse_x, mouse_y = pygame.mouse.get_pos()
+    col = mouse_x // CELL_SIZE
+    row = mouse_y // CELL_SIZE
+    draw_at_cell(col, row)
+
+
+def draw_at_cell(x: int, y: int):
+    """Draw the active material at the specified cell, using the brush radius."""
+    for dx in range(brush_radius * 2 + 1):
+        n_x = x - brush_radius + dx
+        for dy in range(brush_radius * 2 + 1):
+            n_y = y - brush_radius + dy
+            if 0 <= n_x < BOARD_WIDTH and 0 <= n_y < BOARD_HEIGHT:
+                contents[n_y][n_x] = active_material
+
+
 if __name__ == "__main__":
     print("Starting main.py")
     pygame.init()
@@ -153,16 +172,13 @@ if __name__ == "__main__":
                     active_material = Materials.STONE
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
-                    mouse_x, mouse_y = pygame.mouse.get_pos()
-                    col = mouse_x // CELL_SIZE
-                    row = mouse_y // CELL_SIZE
-                    for dx in range(brush_radius * 2 + 1):
-                        cell_x = col - brush_radius + dx
-                        for dy in range(brush_radius * 2 + 1):
-                            cell_y = row - brush_radius + dy
-                            if 0 <= cell_x < BOARD_WIDTH and 0 <= cell_y < BOARD_HEIGHT:
-                                contents[cell_y][cell_x] = active_material
-
+                    drawing = True
+                    draw_at_mouse()
+            elif event.type == pygame.MOUSEBUTTONUP:
+                if event.button == 1:
+                    drawing = False
+            elif event.type == pygame.MOUSEMOTION and drawing:
+                draw_at_mouse()
         tick()
 
         draw_board(board_surface)

@@ -35,13 +35,16 @@ class Material:
     """
     friction: float = 0.5
 
+    """ Is this material affected by gravity?"""
+    gravity: bool = True
+
     def __init__(self, name: str, color: Color):
         self.name = name
         self.color = color
 
     def with_density(self, density: float):
         """Chainable setter for density"""
-        self.density = max(0.0, density)
+        self.density = density
         return self
 
     def with_drift(self, drift: int):
@@ -52,6 +55,11 @@ class Material:
     def with_friction(self, friction: float):
         """Chainable setter for friction"""
         self.friction = max(0.0, min(1.0, friction))
+        return self
+
+    def with_gravity(self, gravity: bool):
+        """Chainable setter for gravity"""
+        self.gravity = gravity
         return self
 
     def __repr__(self):

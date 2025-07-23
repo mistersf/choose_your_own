@@ -11,12 +11,19 @@ class Materials(Enum):
     SAND = 3
     WATER = 4
     OIL = 5
+    HELIUM = 6
+    WALL = 7
 
 
 # Material flyweights for use in the game
 _materials_data = {
-    Materials.EDGE: Material("Edge", Color(0, 0, 0)).with_density(1000.0),
-    Materials.NONE: Material("None", Color(0, 0, 0)).with_density(0.0),
+    Materials.EDGE: Material("Edge", Color(0, 0, 0))
+    .with_density(1000.0)
+    .with_gravity(False),
+    Materials.NONE: Material("None", Color(0, 0, 0))
+    .with_density(0.0)
+    .with_drift(SIDEWAYS_DRIFT)
+    .with_friction(0.5),
     Materials.STONE: Material("Stone", Color(128, 128, 128)).with_density(10.0),
     Materials.SAND: Material("Sand", Color(255, 255, 0))
     .with_density(5.0)
@@ -30,6 +37,15 @@ _materials_data = {
     .with_density(0.8)
     .with_drift(SIDEWAYS_DRIFT)
     .with_friction(0.0),
+    Materials.HELIUM: Material("Helium", Color(255, 128, 255))
+    .with_density(-1.0)
+    .with_drift(SIDEWAYS_DRIFT)
+    .with_friction(0.0),
+    Materials.WALL: Material("Wall", Color(64, 64, 64))
+    .with_density(1000.0)
+    .with_drift(NO_DRIFT)
+    .with_friction(1.0)
+    .with_gravity(False),
 }
 
 

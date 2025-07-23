@@ -21,6 +21,8 @@ SCREEN_HEIGHT = BOARD_HEIGHT * CELL_SIZE
 # This means that contents[y][x] corresponds to pxarray[x, y]
 contents = [[Materials.NONE for _ in range(BOARD_WIDTH)] for _ in range(BOARD_HEIGHT)]
 
+active_material = Materials.SAND
+
 
 def get_content(x: int, y: int) -> Materials:
     """Get the material at the given coordinates."""
@@ -141,6 +143,20 @@ if __name__ == "__main__":
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_1:
+                    active_material = Materials.SAND
+                elif event.key == pygame.K_2:
+                    active_material = Materials.WATER
+                elif event.key == pygame.K_3:
+                    active_material = Materials.STONE
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    mouse_x, mouse_y = pygame.mouse.get_pos()
+                    col = mouse_x // CELL_SIZE
+                    row = mouse_y // CELL_SIZE
+                    if 0 <= col < BOARD_WIDTH and 0 <= row < BOARD_HEIGHT:
+                        contents[row][col] = active_material
 
         tick()
 

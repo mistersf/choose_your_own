@@ -43,8 +43,10 @@ def initialize_board() -> None:
             #     contents[y][x] = Materials.HELIUM
             # continue
             # Fill the bottom with a layer of stone
-            if y > BOARD_HEIGHT // 4 * 3 or 50 < x < 60:
+            if y > BOARD_HEIGHT // 4 * 3:
                 contents[y][x] = Materials.STONE
+            elif 50 < x < 60:
+                contents[y][x] = Materials.WALL
             else:
                 if x < 10:
                     contents[y][x] = Materials.WATER

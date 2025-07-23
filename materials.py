@@ -10,6 +10,7 @@ class Materials(Enum):
     STONE = 2
     SAND = 3
     WATER = 4
+    OIL = 5
 
 
 # Material flyweights for use in the game
@@ -22,6 +23,9 @@ _materials_data = {
     .with_drift(DIAGONAL_DRIFT),
     Materials.WATER: Material("Water", Color(0, 0, 255))
     .with_density(1.0)
+    .with_drift(SIDEWAYS_DRIFT),
+    Materials.OIL: Material("Oil", Color(255, 128, 0))
+    .with_density(0.8)
     .with_drift(SIDEWAYS_DRIFT),
 }
 

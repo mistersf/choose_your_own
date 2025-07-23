@@ -212,6 +212,8 @@ if __name__ == "__main__":
                     active_material = Materials.WATER
                 elif event.key == pygame.K_3:
                     active_material = Materials.STONE
+                elif event.key == pygame.K_4:
+                    active_material = Materials.OIL
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     drawing = True

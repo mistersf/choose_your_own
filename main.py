@@ -125,7 +125,7 @@ def tick():
                 buffer[y][x] = old_contents
 
     # Swap the buffers
-    contents, buffer = buffer, contents
+    contents = buffer
 
 
 if __name__ == "__main__":

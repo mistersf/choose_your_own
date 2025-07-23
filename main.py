@@ -89,79 +89,80 @@ def tick():
                     buffer, x, y, old_contents, x, y + 1, below_contents
                 )
             else:
-                if not modified and old_material.drift >= DIAGONAL_DRIFT:
-                    # Drift down diagonally if possible
-                    below_left_contents = get_content(x - 1, y + 1)
-                    below_right_contents = get_content(x + 1, y + 1)
-                    below_left_material = get_material(below_left_contents)
-                    below_right_material = get_material(below_right_contents)
-                    # Randomly check left or right first
-                    if random.randint(0, 1) == 0:
-                        if below_left_material.density < old_material.density:
-                            modified = buffer_swap(
-                                buffer,
-                                x,
-                                y,
-                                old_contents,
-                                x - 1,
-                                y + 1,
-                                below_left_contents,
-                            )
-                        elif below_right_material.density < old_material.density:
-                            modified = buffer_swap(
-                                buffer,
-                                x,
-                                y,
-                                old_contents,
-                                x + 1,
-                                y + 1,
-                                below_right_contents,
-                            )
-                    else:
-                        if below_right_material.density < old_material.density:
-                            modified = buffer_swap(
-                                buffer,
-                                x,
-                                y,
-                                old_contents,
-                                x + 1,
-                                y + 1,
-                                below_right_contents,
-                            )
-                        elif below_left_material.density < old_material.density:
-                            modified = buffer_swap(
-                                buffer,
-                                x,
-                                y,
-                                old_contents,
-                                x - 1,
-                                y + 1,
-                                below_left_contents,
-                            )
-                if not modified and old_material.drift >= SIDEWAYS_DRIFT:
-                    # Drift sideways if possible
-                    left_contents = get_content(x - 1, y)
-                    right_contents = get_content(x + 1, y)
-                    left_material = get_material(left_contents)
-                    right_material = get_material(right_contents)
-                    if random.randint(0, 1) == 0:
-                        if left_material.density < old_material.density:
-                            modified = buffer_swap(
-                                buffer, x, y, old_contents, x - 1, y, left_contents
-                            )
-                        elif right_material.density < old_material.density:
-                            modified = buffer_swap(
-                                buffer, x, y, old_contents, x + 1, y, right_contents
-                            )
-                    else:
-                        if right_material.density < old_material.density:
-                            modified = buffer_swap(
-                                buffer, x, y, old_contents, x + 1, y, right_contents
-                            )
-                        elif left_material.density < old_material.density:
-                            modified = buffer_swap(
-                                buffer, x, y, old_contents, x - 1, y, left_contents
-                            )
+                if random.random() > old_material.friction:
+                    if not modified and old_material.drift >= DIAGONAL_DRIFT:
+                        # Drift down diagonally if possible
+                        below_left_contents = get_content(x - 1, y + 1)
+                        below_right_contents = get_content(x + 1, y + 1)
+                        below_left_material = get_material(below_left_contents)
+                        below_right_material = get_material(below_right_contents)
+                        # Randomly check left or right first
+                        if random.randint(0, 1) == 0:
+                            if below_left_material.density < old_material.density:
+                                modified = buffer_swap(
+                                    buffer,
+                                    x,
+                                    y,
+                                    old_contents,
+                                    x - 1,
+                                    y + 1,
+                                    below_left_contents,
+                                )
+                            elif below_right_material.density < old_material.density:
+                                modified = buffer_swap(
+                                    buffer,
+                                    x,
+                                    y,
+                                    old_contents,
+                                    x + 1,
+                                    y + 1,
+                                    below_right_contents,
+                                )
+                        else:
+                            if below_right_material.density < old_material.density:
+                                modified = buffer_swap(
+                                    buffer,
+                                    x,
+                                    y,
+                                    old_contents,
+                                    x + 1,
+                                    y + 1,
+                                    below_right_contents,
+                                )
+                            elif below_left_material.density < old_material.density:
+                                modified = buffer_swap(
+                                    buffer,
+                                    x,
+                                    y,
+                                    old_contents,
+                                    x - 1,
+                                    y + 1,
+                                    below_left_contents,
+                                )
+                    if not modified and old_material.drift >= SIDEWAYS_DRIFT:
+                        # Drift sideways if possible
+                        left_contents = get_content(x - 1, y)
+                        right_contents = get_content(x + 1, y)
+                        left_material = get_material(left_contents)
+                        right_material = get_material(right_contents)
+                        if random.randint(0, 1) == 0:
+                            if left_material.density < old_material.density:
+                                modified = buffer_swap(
+                                    buffer, x, y, old_contents, x - 1, y, left_contents
+                                )
+                            elif right_material.density < old_material.density:
+                                modified = buffer_swap(
+                                    buffer, x, y, old_contents, x + 1, y, right_contents
+                                )
+                        else:
+                            if right_material.density < old_material.density:
+                                modified = buffer_swap(
+                                    buffer, x, y, old_contents, x + 1, y, right_contents
+                                )
+                            elif left_material.density < old_material.density:
+                                modified = buffer_swap(
+                                    buffer, x, y, old_contents, x - 1, y, left_contents
+                                )
             # If nothing was modified, keep the old contents.
             # Materials.NONE should still be clean to allow for later movements.
             if not modified:

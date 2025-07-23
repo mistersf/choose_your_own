@@ -27,6 +27,14 @@ class Material:
     """
     drift: int = 0
 
+    """ "Friction" of the material, used for falling checks.
+    The probability that the material will not fall left or right (diagonally or sideways).
+    0.0 means no friction (always falls), 1.0 means maximum friction (never falls sideways).
+    Note that drift must be set to 1 or 2 for this to have an effect.
+    A value between 0.0 (no friction) and 1.0 (maximum friction).
+    """
+    friction: float = 0.5
+
     def __init__(self, name: str, color: Color):
         self.name = name
         self.color = color
@@ -39,6 +47,11 @@ class Material:
     def with_drift(self, drift: int):
         """Chainable setter for drift"""
         self.drift = drift
+        return self
+
+    def with_friction(self, friction: float):
+        """Chainable setter for friction"""
+        self.friction = max(0.0, min(1.0, friction))
         return self
 
     def __repr__(self):

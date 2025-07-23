@@ -20,13 +20,16 @@ _materials_data = {
     Materials.STONE: Material("Stone", Color(128, 128, 128)).with_density(10.0),
     Materials.SAND: Material("Sand", Color(255, 255, 0))
     .with_density(5.0)
-    .with_drift(DIAGONAL_DRIFT),
+    .with_drift(DIAGONAL_DRIFT)
+    .with_friction(0.7),
     Materials.WATER: Material("Water", Color(0, 0, 255))
     .with_density(1.0)
-    .with_drift(SIDEWAYS_DRIFT),
+    .with_drift(SIDEWAYS_DRIFT)
+    .with_friction(0.5),
     Materials.OIL: Material("Oil", Color(255, 128, 0))
     .with_density(0.8)
-    .with_drift(SIDEWAYS_DRIFT),
+    .with_drift(SIDEWAYS_DRIFT)
+    .with_friction(0.0),
 }
 
 

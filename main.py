@@ -2,7 +2,7 @@ import random
 import pygame
 from pygame import Color
 
-from material import Material, MaterialTypes, DriftTypes
+from material import MaterialTypes, DriftTypes, get_material_data
 
 # Constants
 # The dimensions of the board in cells
@@ -23,71 +23,6 @@ INSULATING_MATERIALS = [
     MaterialTypes.NONE,
     MaterialTypes.WALL,
 ]
-
-# Material flyweights for use in the game
-_materials_data = {
-    MaterialTypes.EDGE: Material("Edge", Color(0, 0, 0))
-    .with_density(1000.0)
-    .with_gravity(False)
-    .with_thermal_conductivity(0.0),
-    MaterialTypes.NONE: Material("None", Color(0, 0, 0))
-    .with_density(0.0)
-    .with_drift(DriftTypes.SIDEWAYS_DRIFT)
-    .with_friction(0.5)
-    .with_thermal_conductivity(0.01),
-    MaterialTypes.STONE: Material("Stone", Color(128, 128, 128)).with_density(10.0),
-    MaterialTypes.SAND: Material("Sand", Color(255, 255, 0))
-    .with_density(5.0)
-    .with_drift(DriftTypes.DIAGONAL_DRIFT)
-    .with_friction(0.7),
-    MaterialTypes.WATER: Material("Water", Color(0, 0, 255))
-    .with_density(1.0)
-    .with_drift(DriftTypes.SIDEWAYS_DRIFT)
-    .with_friction(0.5)
-    .with_melting_point(100.0, MaterialTypes.STEAM)
-    .with_freezing_point(0.0, MaterialTypes.ICE),
-    MaterialTypes.OIL: Material("Oil", Color(255, 128, 0))
-    .with_density(0.8)
-    .with_drift(DriftTypes.SIDEWAYS_DRIFT)
-    .with_friction(0.0),
-    MaterialTypes.HELIUM: Material("Helium", Color(255, 128, 255))
-    .with_density(-1.0)
-    .with_drift(DriftTypes.SIDEWAYS_DRIFT)
-    .with_friction(0.0),
-    MaterialTypes.WALL: Material("Wall", Color(64, 64, 64))
-    .with_density(1000.0)
-    .with_drift(DriftTypes.NO_DRIFT)
-    .with_friction(1.0)
-    .with_gravity(False)
-    .with_thermal_conductivity(0.0),
-    MaterialTypes.ICE: Material("Ice", Color(173, 216, 230))
-    .with_density(0.9)
-    .with_drift(DriftTypes.NO_DRIFT)
-    .with_friction(1.0)
-    .with_melting_point(1.0, MaterialTypes.WATER)
-    .with_starting_temperature(-5.0),
-    MaterialTypes.STEAM: Material("Steam", Color(255, 255, 255))
-    .with_density(-0.1)
-    .with_freezing_point(99.0, MaterialTypes.WATER)
-    .with_starting_temperature(105.0),
-    MaterialTypes.LIQUID_NITROGEN: Material("Liquid Nitrogen", Color(173, 222, 255))
-    .with_density(0.8)
-    .with_drift(DriftTypes.SIDEWAYS_DRIFT)
-    .with_friction(0.0)
-    .with_melting_point(0.0, MaterialTypes.NONE)  # TODO add nitrogen gas?
-    .with_starting_temperature(-196.0),
-    MaterialTypes.METAL: Material("Metal", Color(192, 192, 192))
-    .with_density(10.0)
-    .with_drift(DriftTypes.NO_DRIFT)
-    .with_friction(1.0)
-    .with_thermal_conductivity(1.0),
-}
-
-
-def get_material(material_type: MaterialTypes) -> Material:
-    """Retrieve the material flyweight for the given material type."""
-    return _materials_data.get(material_type, _materials_data[MaterialTypes.NONE])
-
 
 # The current state of the board
 # Notably, this is row-major for access, while Pygame uses column-major for PixelArray
@@ -156,10 +91,12 @@ def draw_board(surface: pygame.Surface) -> None:
                 elif temp > 90:
                     color = Color(int(255 - (100 - temp) * 25.5), 0, 0)
                 else:
-                    color = get_material(get_material_id_at(x, y)).color.grayscale()
+                    color = get_material_data(
+                        get_material_id_at(x, y)
+                    ).color.grayscale()
                 pxarray[x, y] = color
             else:
-                material = get_material(get_material_id_at(x, y))
+                material = get_material_data(get_material_id_at(x, y))
                 pxarray[x, y] = material.color
 
 
@@ -172,13 +109,38 @@ def draw_mouse(screen: pygame.Surface) -> None:
     if brush_radius > 0:
         pygame.draw.circle(
             screen,
-            get_material(active_material).color,
+            get_material_data(active_material).color,
             (col, row),
             brush_radius,
             1,
         )
     else:
-        screen.set_at((col, row), get_material(active_material).color)
+        screen.set_at((col, row), get_material_data(active_material).color)
+
+
+def draw_ui(screen: pygame.Surface) -> None:
+    text_elements = [
+        f"Material <1-0>: {active_material.name}",
+        f"Brush Radius <scroll>: {brush_radius}",
+        f"Temperature Overlay <F1>: {'On' if temp_overlay else 'Off'}",
+    ]
+    for i, text in enumerate(text_elements):
+        screen.blit(
+            OUTLINE_FONT.render(
+                text,
+                True,
+                Color(0, 0, 0),
+            ),
+            (10, 10 + i * 20),
+        )
+        screen.blit(
+            DEFAULT_FONT.render(
+                text,
+                True,
+                Color(255, 255, 255),
+            ),
+            (9, 9 + i * 20),
+        )
 
 
 def buffer_swap(
@@ -218,10 +180,16 @@ def tick() -> None:
     temps_buffer = [[None for x in range(BOARD_WIDTH)] for y in range(BOARD_HEIGHT)]
     for y in range(BOARD_HEIGHT):
         for x in range(BOARD_WIDTH):
-            if get_material_id_at(x, y) in INSULATING_MATERIALS:
+            material_id = get_material_id_at(x, y)
+            if material_id in INSULATING_MATERIALS:
                 temps_buffer[y][x] = STARTING_TEMPERATURE
                 continue
-            # TODO better temp shifting (conductivity?)
+            if material_id == MaterialTypes.HEATER:
+                temps_buffer[y][x] = 150.0
+                continue
+            elif material_id == MaterialTypes.COOLER:
+                temps_buffer[y][x] = -50.0
+                continue
             new_temp = get_temperature(x, y)
             divisor = 1.0
             # 10% of the neighboring cells' temperatures are averaged in
@@ -234,7 +202,7 @@ def tick() -> None:
                     neighbor_material_id = get_material_id_at(neighbor_x, neighbor_y)
                     if neighbor_material_id in INSULATING_MATERIALS:
                         continue
-                    thermal_conductivity = get_material(
+                    thermal_conductivity = get_material_data(
                         neighbor_material_id
                     ).thermal_conductivity
                     if thermal_conductivity <= 0:
@@ -249,7 +217,7 @@ def tick() -> None:
     for y in range(BOARD_HEIGHT):
         for x in range(BOARD_WIDTH):
             old_material_id = get_material_id_at(x, y)
-            old_material = get_material(old_material_id)
+            old_material = get_material_data(old_material_id)
             old_temperature = get_temperature(x, y)
             if old_material.melts_to is not None:
                 if old_temperature >= old_material.melting_point:
@@ -271,9 +239,9 @@ def tick() -> None:
             if buffer[y][x] != MaterialTypes.CLEAN:
                 continue
             old_material_id = get_material_id_at(x, y)
-            old_material = get_material(old_material_id)
+            old_material = get_material_data(old_material_id)
             below_material_id = get_material_id_at(x, y + 1)
-            below_material = get_material(below_material_id)
+            below_material = get_material_data(below_material_id)
             modified = False
             if old_material.gravity:
                 # If the material is denser than the one below, swap them
@@ -283,15 +251,17 @@ def tick() -> None:
                     )
                 else:
                     if random.random() > old_material.friction:
-                        if (
-                            not modified
-                            and old_material.drift >= DriftTypes.DIAGONAL_DRIFT
-                        ):
+                        if not modified and old_material.drift in [
+                            DriftTypes.DIAGONAL_DRIFT,
+                            DriftTypes.SIDEWAYS_DRIFT,
+                        ]:
                             # Drift down diagonally if possible
                             below_left_contents = get_material_id_at(x - 1, y + 1)
                             below_right_contents = get_material_id_at(x + 1, y + 1)
-                            below_left_material = get_material(below_left_contents)
-                            below_right_material = get_material(below_right_contents)
+                            below_left_material = get_material_data(below_left_contents)
+                            below_right_material = get_material_data(
+                                below_right_contents
+                            )
                             # Randomly check left or right first
                             if random.randint(0, 1) == 0:
                                 if below_left_material.density < old_material.density:
@@ -337,15 +307,14 @@ def tick() -> None:
                                         y + 1,
                                         below_left_contents,
                                     )
-                        if (
-                            not modified
-                            and old_material.drift >= DriftTypes.SIDEWAYS_DRIFT
-                        ):
+                        if not modified and old_material.drift in [
+                            DriftTypes.SIDEWAYS_DRIFT
+                        ]:
                             # Drift sideways if possible
                             left_contents = get_material_id_at(x - 1, y)
                             right_contents = get_material_id_at(x + 1, y)
-                            left_material = get_material(left_contents)
-                            right_material = get_material(right_contents)
+                            left_material = get_material_data(left_contents)
+                            right_material = get_material_data(right_contents)
                             if random.randint(0, 1) == 0:
                                 if left_material.density < old_material.density:
                                     modified = buffer_swap(
@@ -424,7 +393,7 @@ def place_material_at_cell(x: int, y: int, material: MaterialTypes = None) -> No
                 continue
             if 0 <= n_x < BOARD_WIDTH and 0 <= n_y < BOARD_HEIGHT:
                 contents[n_y][n_x] = material
-                temps[n_y][n_x] = get_material(material).starting_temperature
+                temps[n_y][n_x] = get_material_data(material).starting_temperature
 
 
 if __name__ == "__main__":
@@ -433,6 +402,8 @@ if __name__ == "__main__":
     screen: pygame.Surface = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     board_surface: pygame.Surface = pygame.Surface((BOARD_WIDTH, BOARD_HEIGHT))
     clock: pygame.time.Clock = pygame.time.Clock()
+    DEFAULT_FONT = pygame.font.SysFont("Arial", 16)
+    OUTLINE_FONT = pygame.font.SysFont("Arial", 16, bold=True)
     running: bool = True
 
     initialize_board()
@@ -464,6 +435,10 @@ if __name__ == "__main__":
                     active_material = MaterialTypes.LIQUID_NITROGEN
                 elif event.key == pygame.K_0:
                     active_material = MaterialTypes.METAL
+                elif event.key == pygame.K_MINUS:
+                    active_material = MaterialTypes.HEATER
+                elif event.key == pygame.K_EQUALS:
+                    active_material = MaterialTypes.COOLER
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == pygame.BUTTON_LEFT:
                     drawing = True
@@ -490,6 +465,9 @@ if __name__ == "__main__":
         screen.blit(
             pygame.transform.scale(board_surface, (SCREEN_WIDTH, SCREEN_HEIGHT)), (0, 0)
         )
+
+        draw_ui(screen)
+
         pygame.display.flip()
 
         clock.tick(60)

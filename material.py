@@ -22,6 +22,8 @@ class MaterialTypes(Enum):
     STEAM = 9
     LIQUID_NITROGEN = 10
     METAL = 11
+    HEATER = 12
+    COOLER = 13
 
 
 class Material:
@@ -122,3 +124,83 @@ class Material:
 
     def __repr__(self):
         return f"Material(name={self.name}, color={self.color}, density={self.density}, drift={self.drift})"
+
+
+# Material flyweights for use in the game
+_materials_data = {
+    MaterialTypes.EDGE: Material("Edge", Color(0, 0, 0))
+    .with_density(1000.0)
+    .with_gravity(False)
+    .with_thermal_conductivity(0.0),
+    MaterialTypes.NONE: Material("None", Color(0, 0, 0))
+    .with_density(0.0)
+    .with_drift(DriftTypes.SIDEWAYS_DRIFT)
+    .with_friction(0.5)
+    .with_thermal_conductivity(0.01),
+    MaterialTypes.STONE: Material("Stone", Color(128, 128, 128)).with_density(10.0),
+    MaterialTypes.SAND: Material("Sand", Color(255, 255, 0))
+    .with_density(5.0)
+    .with_drift(DriftTypes.DIAGONAL_DRIFT)
+    .with_friction(0.7),
+    MaterialTypes.WATER: Material("Water", Color(0, 0, 255))
+    .with_density(1.0)
+    .with_drift(DriftTypes.SIDEWAYS_DRIFT)
+    .with_friction(0.5)
+    .with_melting_point(100.0, MaterialTypes.STEAM)
+    .with_freezing_point(0.0, MaterialTypes.ICE),
+    MaterialTypes.OIL: Material("Oil", Color(255, 128, 0))
+    .with_density(0.8)
+    .with_drift(DriftTypes.SIDEWAYS_DRIFT)
+    .with_friction(0.0),
+    MaterialTypes.HELIUM: Material("Helium", Color(255, 128, 255))
+    .with_density(-1.0)
+    .with_drift(DriftTypes.SIDEWAYS_DRIFT)
+    .with_friction(0.0),
+    MaterialTypes.WALL: Material("Wall", Color(64, 64, 64))
+    .with_density(1000.0)
+    .with_drift(DriftTypes.NO_DRIFT)
+    .with_friction(1.0)
+    .with_gravity(False)
+    .with_thermal_conductivity(0.0),
+    MaterialTypes.ICE: Material("Ice", Color(173, 216, 230))
+    .with_density(0.9)
+    .with_drift(DriftTypes.NO_DRIFT)
+    .with_friction(1.0)
+    .with_melting_point(1.0, MaterialTypes.WATER)
+    .with_starting_temperature(-5.0),
+    MaterialTypes.STEAM: Material("Steam", Color(255, 255, 255))
+    .with_density(-0.1)
+    .with_freezing_point(99.0, MaterialTypes.WATER)
+    .with_starting_temperature(105.0),
+    MaterialTypes.LIQUID_NITROGEN: Material("Liquid Nitrogen", Color(173, 222, 255))
+    .with_density(0.8)
+    .with_drift(DriftTypes.SIDEWAYS_DRIFT)
+    .with_friction(0.0)
+    .with_melting_point(0.0, MaterialTypes.NONE)  # TODO add nitrogen gas?
+    .with_starting_temperature(-196.0),
+    MaterialTypes.METAL: Material("Metal", Color(192, 192, 192))
+    .with_density(10.0)
+    .with_drift(DriftTypes.NO_DRIFT)
+    .with_friction(1.0)
+    .with_gravity(False)
+    .with_thermal_conductivity(1.0),
+    MaterialTypes.HEATER: Material("Heater", Color(255, 0, 0))
+    .with_density(1000.0)
+    .with_drift(DriftTypes.NO_DRIFT)
+    .with_friction(1.0)
+    .with_gravity(False)
+    .with_thermal_conductivity(1.0)
+    .with_starting_temperature(150.0),
+    MaterialTypes.COOLER: Material("Cooler", Color(0, 0, 255))
+    .with_density(1000.0)
+    .with_drift(DriftTypes.NO_DRIFT)
+    .with_friction(1.0)
+    .with_gravity(False)
+    .with_thermal_conductivity(1.0)
+    .with_starting_temperature(-50.0),
+}
+
+
+def get_material_data(material_type: MaterialTypes) -> Material:
+    """Retrieve the material flyweight for the given material type."""
+    return _materials_data.get(material_type, _materials_data[MaterialTypes.NONE])

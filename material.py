@@ -1,7 +1,27 @@
 from pygame import Color
+from enum import Enum
 
-from materials import Materials
-from constants import NO_DRIFT, DIAGONAL_DRIFT, SIDEWAYS_DRIFT
+
+class DriftTypes(Enum):
+    NO_DRIFT = 0
+    DIAGONAL_DRIFT = 1
+    SIDEWAYS_DRIFT = 2
+
+
+class MaterialTypes(Enum):
+    CLEAN = -1  # Special value for unmodified buffer cell
+    EDGE = 0
+    NONE = 1
+    STONE = 2
+    SAND = 3
+    WATER = 4
+    OIL = 5
+    HELIUM = 6
+    WALL = 7
+    ICE = 8
+    STEAM = 9
+    LIQUID_NITROGEN = 10
+    METAL = 11
 
 
 class Material:
@@ -42,14 +62,14 @@ class Material:
     melting_point: float = 0.0
     """ What material does this material melt into when heated?
     If None, the material does not melt."""
-    melts_to: Materials = None
+    melts_to: MaterialTypes = None
 
     """ What temperature does this material freeze at? 
     Requires freezes_to to be set to a valid material."""
     freezing_point: float = 0.0
     """ What material does this material freeze into when heated?
     If None, the material does not melt."""
-    freezes_to: Materials = None
+    freezes_to: MaterialTypes = None
 
     starting_temperature: float = 20.0
     thermal_conductivity: float = 0.1
@@ -78,13 +98,13 @@ class Material:
         self.gravity = gravity
         return self
 
-    def with_melting_point(self, melting_point: float, melts_to: Materials):
+    def with_melting_point(self, melting_point: float, melts_to: MaterialTypes):
         """Chainable setter for melting point and melts_to"""
         self.melting_point = melting_point
         self.melts_to = melts_to
         return self
 
-    def with_freezing_point(self, freezing_point: float, freezes_to: Materials):
+    def with_freezing_point(self, freezing_point: float, freezes_to: MaterialTypes):
         """Chainable setter for freezing point and freezes_to"""
         self.freezing_point = freezing_point
         self.freezes_to = freezes_to

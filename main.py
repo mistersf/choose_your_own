@@ -2,9 +2,7 @@ import random
 import pygame
 from pygame import Color
 
-from constants import NO_DRIFT, DIAGONAL_DRIFT, SIDEWAYS_DRIFT
-from materials import Materials
-from material import Material
+from material import Material, MaterialTypes, DriftTypes
 
 # Constants
 # The dimensions of the board in cells
@@ -21,99 +19,99 @@ SCREEN_HEIGHT: int = BOARD_HEIGHT * CELL_SIZE
 STARTING_TEMPERATURE: float = 20.0
 
 INSULATING_MATERIALS = [
-    Materials.EDGE,
-    Materials.NONE,
-    Materials.WALL,
+    MaterialTypes.EDGE,
+    MaterialTypes.NONE,
+    MaterialTypes.WALL,
 ]
 
 # Material flyweights for use in the game
 _materials_data = {
-    Materials.EDGE: Material("Edge", Color(0, 0, 0))
+    MaterialTypes.EDGE: Material("Edge", Color(0, 0, 0))
     .with_density(1000.0)
     .with_gravity(False)
     .with_thermal_conductivity(0.0),
-    Materials.NONE: Material("None", Color(0, 0, 0))
+    MaterialTypes.NONE: Material("None", Color(0, 0, 0))
     .with_density(0.0)
-    .with_drift(SIDEWAYS_DRIFT)
+    .with_drift(DriftTypes.SIDEWAYS_DRIFT)
     .with_friction(0.5)
     .with_thermal_conductivity(0.01),
-    Materials.STONE: Material("Stone", Color(128, 128, 128)).with_density(10.0),
-    Materials.SAND: Material("Sand", Color(255, 255, 0))
+    MaterialTypes.STONE: Material("Stone", Color(128, 128, 128)).with_density(10.0),
+    MaterialTypes.SAND: Material("Sand", Color(255, 255, 0))
     .with_density(5.0)
-    .with_drift(DIAGONAL_DRIFT)
+    .with_drift(DriftTypes.DIAGONAL_DRIFT)
     .with_friction(0.7),
-    Materials.WATER: Material("Water", Color(0, 0, 255))
+    MaterialTypes.WATER: Material("Water", Color(0, 0, 255))
     .with_density(1.0)
-    .with_drift(SIDEWAYS_DRIFT)
+    .with_drift(DriftTypes.SIDEWAYS_DRIFT)
     .with_friction(0.5)
-    .with_melting_point(100.0, Materials.STEAM)
-    .with_freezing_point(0.0, Materials.ICE),
-    Materials.OIL: Material("Oil", Color(255, 128, 0))
+    .with_melting_point(100.0, MaterialTypes.STEAM)
+    .with_freezing_point(0.0, MaterialTypes.ICE),
+    MaterialTypes.OIL: Material("Oil", Color(255, 128, 0))
     .with_density(0.8)
-    .with_drift(SIDEWAYS_DRIFT)
+    .with_drift(DriftTypes.SIDEWAYS_DRIFT)
     .with_friction(0.0),
-    Materials.HELIUM: Material("Helium", Color(255, 128, 255))
+    MaterialTypes.HELIUM: Material("Helium", Color(255, 128, 255))
     .with_density(-1.0)
-    .with_drift(SIDEWAYS_DRIFT)
+    .with_drift(DriftTypes.SIDEWAYS_DRIFT)
     .with_friction(0.0),
-    Materials.WALL: Material("Wall", Color(64, 64, 64))
+    MaterialTypes.WALL: Material("Wall", Color(64, 64, 64))
     .with_density(1000.0)
-    .with_drift(NO_DRIFT)
+    .with_drift(DriftTypes.NO_DRIFT)
     .with_friction(1.0)
     .with_gravity(False)
     .with_thermal_conductivity(0.0),
-    Materials.ICE: Material("Ice", Color(173, 216, 230))
+    MaterialTypes.ICE: Material("Ice", Color(173, 216, 230))
     .with_density(0.9)
-    .with_drift(NO_DRIFT)
+    .with_drift(DriftTypes.NO_DRIFT)
     .with_friction(1.0)
-    .with_melting_point(1.0, Materials.WATER)
+    .with_melting_point(1.0, MaterialTypes.WATER)
     .with_starting_temperature(-5.0),
-    Materials.STEAM: Material("Steam", Color(255, 255, 255))
+    MaterialTypes.STEAM: Material("Steam", Color(255, 255, 255))
     .with_density(-0.1)
-    .with_freezing_point(99.0, Materials.WATER)
+    .with_freezing_point(99.0, MaterialTypes.WATER)
     .with_starting_temperature(105.0),
-    Materials.LIQUID_NITROGEN: Material("Liquid Nitrogen", Color(173, 222, 255))
+    MaterialTypes.LIQUID_NITROGEN: Material("Liquid Nitrogen", Color(173, 222, 255))
     .with_density(0.8)
-    .with_drift(SIDEWAYS_DRIFT)
+    .with_drift(DriftTypes.SIDEWAYS_DRIFT)
     .with_friction(0.0)
-    .with_melting_point(0.0, Materials.NONE)  # TODO add nitrogen gas?
+    .with_melting_point(0.0, MaterialTypes.NONE)  # TODO add nitrogen gas?
     .with_starting_temperature(-196.0),
-    Materials.METAL: Material("Metal", Color(192, 192, 192))
+    MaterialTypes.METAL: Material("Metal", Color(192, 192, 192))
     .with_density(10.0)
-    .with_drift(NO_DRIFT)
+    .with_drift(DriftTypes.NO_DRIFT)
     .with_friction(1.0)
     .with_thermal_conductivity(1.0),
 }
 
 
-def get_material(material_type: Materials) -> Material:
+def get_material(material_type: MaterialTypes) -> Material:
     """Retrieve the material flyweight for the given material type."""
-    return _materials_data.get(material_type, _materials_data[Materials.NONE])
+    return _materials_data.get(material_type, _materials_data[MaterialTypes.NONE])
 
 
 # The current state of the board
 # Notably, this is row-major for access, while Pygame uses column-major for PixelArray
 # This means that contents[y][x] corresponds to pxarray[x, y]
-contents: list[list[Materials]] = [
-    [Materials.NONE for _ in range(BOARD_WIDTH)] for _ in range(BOARD_HEIGHT)
+contents: list[list[MaterialTypes]] = [
+    [MaterialTypes.NONE for _ in range(BOARD_WIDTH)] for _ in range(BOARD_HEIGHT)
 ]
 
 temps: list[list[float]] = [
     [STARTING_TEMPERATURE for _ in range(BOARD_WIDTH)] for _ in range(BOARD_HEIGHT)
 ]
 
-active_material: Materials = Materials.SAND
+active_material: MaterialTypes = MaterialTypes.SAND
 brush_radius: int = 1
 drawing: bool = False
 erasing: bool = False
 temp_overlay: bool = False
 
 
-def get_material_id_at(x: int, y: int) -> Materials:
+def get_material_id_at(x: int, y: int) -> MaterialTypes:
     """Get the material at the given coordinates."""
     if 0 <= x < BOARD_WIDTH and 0 <= y < BOARD_HEIGHT:
         return contents[y][x]
-    return Materials.EDGE  # Return EDGE if out of bounds
+    return MaterialTypes.EDGE  # Return EDGE if out of bounds
 
 
 def get_temperature(x: int, y: int) -> float:
@@ -132,14 +130,14 @@ def initialize_board() -> None:
             # continue
             # Fill the bottom with a layer of stone
             if y > BOARD_HEIGHT // 4 * 3:
-                contents[y][x] = Materials.STONE
+                contents[y][x] = MaterialTypes.STONE
             elif 50 < x < 60:
-                contents[y][x] = Materials.WALL
+                contents[y][x] = MaterialTypes.WALL
             else:
                 if x < 10:
-                    contents[y][x] = Materials.WATER
+                    contents[y][x] = MaterialTypes.WATER
                 elif x < 20:
-                    contents[y][x] = Materials.SAND
+                    contents[y][x] = MaterialTypes.SAND
 
 
 def draw_board(surface: pygame.Surface) -> None:
@@ -184,20 +182,24 @@ def draw_mouse(screen: pygame.Surface) -> None:
 
 
 def buffer_swap(
-    buffer: list[list[Materials]],
+    buffer: list[list[MaterialTypes]],
     x1: int,
     y1: int,
-    contents1: Materials,
+    contents1: MaterialTypes,
     x2: int,
     y2: int,
-    contents2: Materials,
+    contents2: MaterialTypes,
 ) -> bool:
     """
     Swap two cells in the buffer ONLY IF CLEAN.
     Returns False if the swap was not possible.
     """
-    clean1 = buffer[y1][x1] == Materials.CLEAN  # or buffer[y1][x1] == Materials.NONE
-    clean2 = buffer[y2][x2] == Materials.CLEAN  # or buffer[y2][x2] == Materials.NONE
+    clean1 = (
+        buffer[y1][x1] == MaterialTypes.CLEAN
+    )  # or buffer[y1][x1] == Materials.NONE
+    clean2 = (
+        buffer[y2][x2] == MaterialTypes.CLEAN
+    )  # or buffer[y2][x2] == Materials.NONE
     if not (clean1 and clean2):
         return False
     temp1 = get_temperature(x1, y1)
@@ -259,14 +261,14 @@ def tick() -> None:
                     contents[y][x] = old_material.freezes_to
     # Movement
     buffer = [
-        [Materials.CLEAN for _ in range(BOARD_WIDTH)] for _ in range(BOARD_HEIGHT)
+        [MaterialTypes.CLEAN for _ in range(BOARD_WIDTH)] for _ in range(BOARD_HEIGHT)
     ]
     for y in range(BOARD_HEIGHT):
         left_or_right = random.randint(0, 1)  # Randomly check left or right first
         for x in (
             range(BOARD_WIDTH) if left_or_right == 0 else range(BOARD_WIDTH - 1, -1, -1)
         ):
-            if buffer[y][x] != Materials.CLEAN:
+            if buffer[y][x] != MaterialTypes.CLEAN:
                 continue
             old_material_id = get_material_id_at(x, y)
             old_material = get_material(old_material_id)
@@ -281,7 +283,10 @@ def tick() -> None:
                     )
                 else:
                     if random.random() > old_material.friction:
-                        if not modified and old_material.drift >= DIAGONAL_DRIFT:
+                        if (
+                            not modified
+                            and old_material.drift >= DriftTypes.DIAGONAL_DRIFT
+                        ):
                             # Drift down diagonally if possible
                             below_left_contents = get_material_id_at(x - 1, y + 1)
                             below_right_contents = get_material_id_at(x + 1, y + 1)
@@ -332,7 +337,10 @@ def tick() -> None:
                                         y + 1,
                                         below_left_contents,
                                     )
-                        if not modified and old_material.drift >= SIDEWAYS_DRIFT:
+                        if (
+                            not modified
+                            and old_material.drift >= DriftTypes.SIDEWAYS_DRIFT
+                        ):
                             # Drift sideways if possible
                             left_contents = get_material_id_at(x - 1, y)
                             right_contents = get_material_id_at(x + 1, y)
@@ -385,15 +393,15 @@ def tick() -> None:
             if not modified:
                 buffer[y][x] = (
                     old_material_id
-                    if old_material_id != Materials.CLEAN
-                    else Materials.CLEAN
+                    if old_material_id != MaterialTypes.CLEAN
+                    else MaterialTypes.CLEAN
                 )
 
     # Swap the buffers
     contents = buffer
 
 
-def place_material_with_mouse(material: Materials = None) -> None:
+def place_material_with_mouse(material: MaterialTypes = None) -> None:
     """Draw the active material at the mouse position."""
     mouse_x, mouse_y = pygame.mouse.get_pos()
     col: int = mouse_x // CELL_SIZE
@@ -401,7 +409,7 @@ def place_material_with_mouse(material: Materials = None) -> None:
     place_material_at_cell(col, row, material)
 
 
-def place_material_at_cell(x: int, y: int, material: Materials = None) -> None:
+def place_material_at_cell(x: int, y: int, material: MaterialTypes = None) -> None:
     """
     Draw the given material at the specified cell, using the brush radius.
     Draws the active material if none is specified.
@@ -437,25 +445,25 @@ if __name__ == "__main__":
                 if event.key == pygame.K_F1:
                     temp_overlay = not temp_overlay
                 elif event.key == pygame.K_1:
-                    active_material = Materials.SAND
+                    active_material = MaterialTypes.SAND
                 elif event.key == pygame.K_2:
-                    active_material = Materials.WATER
+                    active_material = MaterialTypes.WATER
                 elif event.key == pygame.K_3:
-                    active_material = Materials.STONE
+                    active_material = MaterialTypes.STONE
                 elif event.key == pygame.K_4:
-                    active_material = Materials.OIL
+                    active_material = MaterialTypes.OIL
                 elif event.key == pygame.K_5:
-                    active_material = Materials.HELIUM
+                    active_material = MaterialTypes.HELIUM
                 elif event.key == pygame.K_6:
-                    active_material = Materials.WALL
+                    active_material = MaterialTypes.WALL
                 elif event.key == pygame.K_7:
-                    active_material = Materials.ICE
+                    active_material = MaterialTypes.ICE
                 elif event.key == pygame.K_8:
-                    active_material = Materials.STEAM
+                    active_material = MaterialTypes.STEAM
                 elif event.key == pygame.K_9:
-                    active_material = Materials.LIQUID_NITROGEN
+                    active_material = MaterialTypes.LIQUID_NITROGEN
                 elif event.key == pygame.K_0:
-                    active_material = Materials.METAL
+                    active_material = MaterialTypes.METAL
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == pygame.BUTTON_LEFT:
                     drawing = True
@@ -473,7 +481,7 @@ if __name__ == "__main__":
         if drawing:
             place_material_with_mouse()
         elif erasing:
-            place_material_with_mouse(Materials.NONE)
+            place_material_with_mouse(MaterialTypes.NONE)
         tick()
 
         draw_board(board_surface)

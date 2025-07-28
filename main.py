@@ -181,9 +181,6 @@ def tick() -> None:
     for y in range(BOARD_HEIGHT):
         for x in range(BOARD_WIDTH):
             material_id = get_material_id_at(x, y)
-            if material_id in INSULATING_MATERIALS:
-                temps_buffer[y][x] = STARTING_TEMPERATURE
-                continue
             if material_id == MaterialTypes.HEATER:
                 temps_buffer[y][x] = 150.0
                 continue
@@ -200,8 +197,6 @@ def tick() -> None:
                     neighbor_x = x + dx
                     neighbor_y = y + dy
                     neighbor_material_id = get_material_id_at(neighbor_x, neighbor_y)
-                    if neighbor_material_id in INSULATING_MATERIALS:
-                        continue
                     thermal_conductivity = get_material_data(
                         neighbor_material_id
                     ).thermal_conductivity

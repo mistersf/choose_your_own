@@ -166,12 +166,12 @@ _materials_data = {
     .with_density(0.9)
     .with_drift(DriftTypes.NO_DRIFT)
     .with_friction(1.0)
-    .with_melting_point(1.0, MaterialTypes.WATER)
-    .with_starting_temperature(-5.0),
+    .with_melting_point(5.0, MaterialTypes.WATER)
+    .with_starting_temperature(-25.0),
     MaterialTypes.STEAM: Material("Steam", Color(255, 255, 255))
     .with_density(-0.1)
-    .with_freezing_point(99.0, MaterialTypes.WATER)
-    .with_starting_temperature(105.0),
+    .with_freezing_point(95.0, MaterialTypes.WATER)
+    .with_starting_temperature(125.0),
     MaterialTypes.LIQUID_NITROGEN: Material("Liquid Nitrogen", Color(173, 222, 255))
     .with_density(0.8)
     .with_drift(DriftTypes.SIDEWAYS_DRIFT)
@@ -191,7 +191,7 @@ _materials_data = {
     .with_gravity(False)
     .with_thermal_conductivity(1.0)
     .with_starting_temperature(150.0),
-    MaterialTypes.COOLER: Material("Cooler", Color(0, 0, 255))
+    MaterialTypes.COOLER: Material("Cooler", Color(72, 72, 255))
     .with_density(1000.0)
     .with_drift(DriftTypes.NO_DRIFT)
     .with_friction(1.0)
